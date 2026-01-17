@@ -27,14 +27,18 @@
     "cf:tail": "wrangler pages deployment tail"
   },
   "dependencies": {
+    "@clerk/remix": "^4.13.29",
     "@remix-run/cloudflare": "^2.14.0",
     "@remix-run/cloudflare-pages": "^2.14.0",
     "@remix-run/react": "^2.14.0",
+    "@sendgrid/mail": "^8.1.6",
     "bcryptjs": "^2.4.3",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.36.4",
+    "html5-qrcode": "^2.3.8",
     "isbot": "^5.1.21",
     "qrcode": "^1.5.4",
+    "qrcode.react": "^4.2.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "resend": "^4.0.1",
@@ -74,7 +78,7 @@
     "vite": "^6.0.3",
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^4.0.17",
-    "wrangler": "^3.99.0"
+    "wrangler": "^4.59.2"
   },
   "engines": {
     "node": ">=20.0.0",

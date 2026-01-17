@@ -1,0 +1,1 @@
+ALTER TABLE `waivers` ADD `consents` text NOT NULL;

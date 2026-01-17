@@ -5,11 +5,12 @@ import type {
 } from "@remix-run/cloudflare";
 import { json, redirect } from "@remix-run/cloudflare";
 import { useLoaderData, useActionData, Form, Link } from "@remix-run/react";
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and } from "drizzle-orm";
 import { getDb } from "~/lib/db.server";
 import { events, attendees, rsvps } from "~/lib/schema";
 import { rsvpFormSchema, parseFormData } from "~/utils/validation";
 import { formatDate, formatTimeRange, isEventInPast } from "~/utils/date";
+import { sendEmail, buildRsvpConfirmationEmail } from "~/lib/email.server";
 
 type ActionData =
   | { success: true; message: string; isWaitlist: boolean }
@@ -26,7 +27,7 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 };
 
 export async function loader({ params, context }: LoaderFunctionArgs) {
-  const db = getDb(context.cloudflare.env.DB);
+  const db = getDb(context?.cloudflare?.env.DB);
   const { slug } = params;
 
   if (!slug) {
@@ -44,13 +45,13 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
   }
 
   // Get RSVP count
-  const rsvpCountResult = await db
-    .select({ count: sql<number>`count(*)` })
+  const rsvpList = await db
+    .select()
     .from(rsvps)
     .where(and(eq(rsvps.eventId, event.id), eq(rsvps.status, "yes")))
-    .get();
+    .all();
 
-  const rsvpCount = rsvpCountResult?.count ?? 0;
+  const rsvpCount = rsvpList.length;
   const spotsRemaining = event.capacity ? event.capacity - rsvpCount : null;
   const isAtCapacity = event.capacity !== null && rsvpCount >= event.capacity;
 
@@ -63,7 +64,7 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
 }
 
 export async function action({ params, request, context }: ActionFunctionArgs) {
-  const db = getDb(context.cloudflare.env.DB);
+  const db = getDb(context?.cloudflare?.env.DB);
   const { slug } = params;
 
   if (!slug) {
@@ -100,13 +101,13 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
   const { name, email, notes } = result.data;
 
   // Check RSVP count for capacity
-  const rsvpCountResult = await db
-    .select({ count: sql<number>`count(*)` })
+  const rsvpList = await db
+    .select()
     .from(rsvps)
     .where(and(eq(rsvps.eventId, event.id), eq(rsvps.status, "yes")))
-    .get();
+    .all();
 
-  const rsvpCount = rsvpCountResult?.count ?? 0;
+  const rsvpCount = rsvpList.length;
   const isAtCapacity = event.capacity !== null && rsvpCount >= event.capacity;
 
   // Find or create attendee
@@ -149,20 +150,45 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
 
     // If event requires waiver and not signed, redirect to waiver
     if (event.requiresWaiver) {
-      return redirect(`/events/${slug}/waiver?email=${encodeURIComponent(email)}`);
+      return redirect(`/events/${slug}/waiver?token=${existingRsvp.confirmationToken}`);
     }
 
-    return json<ActionData>({
-      success: true,
-      message: isAtCapacity
-        ? "You've been added to the waitlist!"
-        : "Your RSVP has been updated!",
+    // Send confirmation email for existing RSVP update
+    const baseUrl = new URL(request.url).origin;
+    const confirmationUrl = `${baseUrl}/events/${slug}/confirmation?token=${existingRsvp.confirmationToken}`;
+
+    const emailContent = buildRsvpConfirmationEmail({
+      attendeeName: name,
+      eventName: event.name,
+      eventDate: formatDate(event.date),
+      eventTime: formatTimeRange(event.timeStart, event.timeEnd),
+      eventLocation: event.location,
+      confirmationUrl,
       isWaitlist: isAtCapacity,
+      requiresWaiver: false,
+      makerspaceName: "Fubar Labs",
     });
+
+    const sendgridApiKey = context?.cloudflare?.env?.SENDGRID_API_KEY as string | undefined;
+    const fromEmail = context?.cloudflare?.env?.FROM_EMAIL as string || "events@fubarlabs.org";
+
+    sendEmail(
+      {
+        to: { email: email.toLowerCase(), name },
+        from: { email: fromEmail, name: "Fubar Labs" },
+        subject: emailContent.subject,
+        text: emailContent.text,
+        html: emailContent.html,
+      },
+      sendgridApiKey || ""
+    ).catch((err) => console.error("[rsvp] Failed to send email:", err));
+
+    // Redirect to confirmation page with token
+    return redirect(`/events/${slug}/confirmation?token=${existingRsvp.confirmationToken}`);
   }
 
   // Create new RSVP
-  await db
+  const newRsvp = await db
     .insert(rsvps)
     .values({
       eventId: event.id,
@@ -170,20 +196,47 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
       status: isAtCapacity ? "waitlist" : "yes",
       notes: notes || null,
     })
-    .run();
+    .returning()
+    .get();
 
-  // If event requires waiver, redirect to waiver page
+  // If event requires waiver, redirect to waiver page (email sent after waiver signed)
   if (event.requiresWaiver) {
-    return redirect(`/events/${slug}/waiver?email=${encodeURIComponent(email)}`);
+    return redirect(`/events/${slug}/waiver?token=${newRsvp.confirmationToken}`);
   }
 
-  return json<ActionData>({
-    success: true,
-    message: isAtCapacity
-      ? "You've been added to the waitlist! We'll notify you if a spot opens up."
-      : "You're registered! See you at the event.",
+  // Send confirmation email (no waiver required)
+  const baseUrl = new URL(request.url).origin;
+  const confirmationUrl = `${baseUrl}/events/${slug}/confirmation?token=${newRsvp.confirmationToken}`;
+
+  const emailContent = buildRsvpConfirmationEmail({
+    attendeeName: name,
+    eventName: event.name,
+    eventDate: formatDate(event.date),
+    eventTime: formatTimeRange(event.timeStart, event.timeEnd),
+    eventLocation: event.location,
+    confirmationUrl,
     isWaitlist: isAtCapacity,
+    requiresWaiver: false,
+    makerspaceName: "Fubar Labs",
   });
+
+  const sendgridApiKey = context?.cloudflare?.env?.SENDGRID_API_KEY as string | undefined;
+  const fromEmail = context?.cloudflare?.env?.FROM_EMAIL as string || "events@fubarlabs.org";
+
+  // Send email in background (don't block redirect)
+  sendEmail(
+    {
+      to: { email: email.toLowerCase(), name },
+      from: { email: fromEmail, name: "Fubar Labs" },
+      subject: emailContent.subject,
+      text: emailContent.text,
+      html: emailContent.html,
+    },
+    sendgridApiKey || ""
+  ).catch((err) => console.error("[rsvp] Failed to send email:", err));
+
+  // Redirect to confirmation page with token
+  return redirect(`/events/${slug}/confirmation?token=${newRsvp.confirmationToken}`);
 }
 
 export default function EventDetail() {

@@ -3,10 +3,10 @@ import { json } from "@remix-run/cloudflare";
 import { useLoaderData, Link } from "@remix-run/react";
 import { getDb } from "~/lib/db.server";
 import { events } from "~/lib/schema";
-import { sql, desc, gt } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 
-export const meta: MetaFunction = () => {
-  const makerspaceName = process.env.MAKERSPACE_NAME || "Makerspace";
+export const meta: MetaFunction<typeof loader> = ({ data }) => {
+  const makerspaceName = data?.makerspaceName || "Makerspace";
   return [
     { title: `${makerspaceName} Events - RSVP System` },
     {
@@ -17,8 +17,8 @@ export const meta: MetaFunction = () => {
 };
 
 export async function loader({ context }: LoaderFunctionArgs) {
-  const db = getDb(context.cloudflare.env.DB);
-  const makerspaceName = context.cloudflare.env.MAKERSPACE_NAME || "Makerspace";
+  const db = getDb(context?.cloudflare?.env.DB);
+  const makerspaceName = context?.cloudflare?.env.MAKERSPACE_NAME || "Makerspace";
 
   // Get upcoming published events
   const upcomingEvents = await db
@@ -106,11 +106,34 @@ export default function Index() {
       </main>
 
       {/* Footer */}
-      <footer className="mt-16 bg-white">
+      <footer className="mt-16 bg-white border-t border-gray-200">
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-          <p className="text-center text-sm text-gray-600">
-            © {new Date().getFullYear()} {makerspaceName}
-          </p>
+          <div className="text-center text-sm text-gray-600 space-y-2">
+            <p className="font-medium">{makerspaceName}</p>
+            <p>New Jersey's First Hackerspace</p>
+            <p>1510 Jersey Ave, North Brunswick, NJ 08902</p>
+            <div className="flex justify-center gap-4 mt-4">
+              <a
+                href="https://fubarlabs.org"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:text-blue-800"
+              >
+                Website
+              </a>
+              <a
+                href="https://discord.gg/dVs42Xz9Ns"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:text-blue-800"
+              >
+                Discord
+              </a>
+            </div>
+            <p className="mt-4 text-gray-500">
+              © {new Date().getFullYear()} Fair Use Building and Research Labs
+            </p>
+          </div>
         </div>
       </footer>
     </div>

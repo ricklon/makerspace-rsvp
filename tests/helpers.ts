@@ -40,6 +40,8 @@ export function createTestDb() {
       attendee_id TEXT NOT NULL REFERENCES attendees(id) ON DELETE CASCADE,
       status TEXT DEFAULT 'yes' NOT NULL,
       notes TEXT,
+      confirmation_token TEXT UNIQUE,
+      checkin_token TEXT UNIQUE,
       created_at TEXT DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
       updated_at TEXT DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
       UNIQUE(event_id, attendee_id)
@@ -50,6 +52,7 @@ export function createTestDb() {
       event_id TEXT NOT NULL REFERENCES events(id) ON DELETE CASCADE,
       attendee_id TEXT NOT NULL REFERENCES attendees(id) ON DELETE CASCADE,
       waiver_text TEXT NOT NULL,
+      consents TEXT NOT NULL,
       signed_at TEXT DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
       ip_address TEXT NOT NULL,
       consent INTEGER NOT NULL,
@@ -112,4 +115,40 @@ export function createFormData(data: Record<string, string>) {
     formData.append(key, value);
   }
   return formData;
+}
+
+export function seedTestRsvp(
+  db: ReturnType<typeof createTestDb>,
+  overrides: Partial<schema.NewRSVP> & { eventId: string; attendeeId: string }
+) {
+  const rsvp: schema.NewRSVP = {
+    id: overrides.id || "test-rsvp-1",
+    eventId: overrides.eventId,
+    attendeeId: overrides.attendeeId,
+    status: overrides.status || "yes",
+    notes: overrides.notes || null,
+    confirmationToken: overrides.confirmationToken || crypto.randomUUID(),
+    checkinToken: overrides.checkinToken || crypto.randomUUID(),
+  };
+
+  db.insert(schema.rsvps).values(rsvp).run();
+  return rsvp;
+}
+
+export function seedTestWaiver(
+  db: ReturnType<typeof createTestDb>,
+  overrides: Partial<schema.NewWaiver> & { eventId: string; attendeeId: string }
+) {
+  const waiver: schema.NewWaiver = {
+    id: overrides.id || "test-waiver-1",
+    eventId: overrides.eventId,
+    attendeeId: overrides.attendeeId,
+    waiverText: overrides.waiverText || JSON.stringify({ title: "Test Waiver", items: [] }),
+    consents: overrides.consents || JSON.stringify({ liability: true }),
+    ipAddress: overrides.ipAddress || "127.0.0.1",
+    consent: overrides.consent ?? true,
+  };
+
+  db.insert(schema.waivers).values(waiver).run();
+  return waiver;
 }

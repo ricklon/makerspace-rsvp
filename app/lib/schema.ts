@@ -69,6 +69,13 @@ export const rsvps = sqliteTable(
       .notNull()
       .default("yes"),
     notes: text("notes"),
+    // Tokens for privacy-preserving URLs (no email in query params)
+    confirmationToken: text("confirmation_token")
+      .unique()
+      .$defaultFn(() => crypto.randomUUID()),
+    checkinToken: text("checkin_token")
+      .unique()
+      .$defaultFn(() => crypto.randomUUID()),
     createdAt: text("created_at")
       .notNull()
       .default(sql`(CURRENT_TIMESTAMP)`),
@@ -79,6 +86,8 @@ export const rsvps = sqliteTable(
   (table) => ({
     eventIdIdx: index("rsvp_event_idx").on(table.eventId),
     attendeeIdIdx: index("rsvp_attendee_idx").on(table.attendeeId),
+    confirmationTokenIdx: index("rsvp_confirmation_token_idx").on(table.confirmationToken),
+    checkinTokenIdx: index("rsvp_checkin_token_idx").on(table.checkinToken),
     uniqueRsvp: unique("unique_rsvp").on(table.eventId, table.attendeeId),
   })
 );
@@ -94,12 +103,13 @@ export const waivers = sqliteTable(
     attendeeId: text("attendee_id")
       .notNull()
       .references(() => attendees.id, { onDelete: "cascade" }),
-    waiverText: text("waiver_text").notNull(), // Snapshot of waiver at signing time
+    waiverText: text("waiver_text").notNull(), // Snapshot of waiver config at signing time (JSON)
+    consents: text("consents").notNull(), // JSON object of {itemId: boolean} for each waiver item
     signedAt: text("signed_at")
       .notNull()
       .default(sql`(CURRENT_TIMESTAMP)`),
     ipAddress: text("ip_address").notNull(),
-    consent: integer("consent", { mode: "boolean" }).notNull(),
+    consent: integer("consent", { mode: "boolean" }).notNull(), // True if all required items agreed
   },
   (table) => ({
     eventIdIdx: index("waiver_event_idx").on(table.eventId),
