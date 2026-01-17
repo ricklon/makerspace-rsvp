@@ -1,21 +1,61 @@
 import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
-import { Outlet, Link, useLocation } from "@remix-run/react";
+import { Outlet, Link, useLocation, useLoaderData } from "@remix-run/react";
 import { getAuth } from "@clerk/remix/ssr.server";
-import { redirect } from "@remix-run/cloudflare";
-import { SignOutButton, UserButton } from "@clerk/remix";
+import { redirect, json } from "@remix-run/cloudflare";
+import { UserButton } from "@clerk/remix";
+
+type AdminRole = "admin" | "super_admin";
+
+interface PublicMetadata {
+  role?: AdminRole;
+}
 
 export async function loader(args: LoaderFunctionArgs) {
-  const { userId } = await getAuth(args);
+  const { userId, sessionClaims } = await getAuth(args);
 
   if (!userId) {
     return redirect("/sign-in?redirect_url=/admin");
   }
 
-  return { userId };
+  // Check for admin role in public metadata
+  const publicMetadata = (sessionClaims?.publicMetadata || {}) as PublicMetadata;
+  const isAdmin = publicMetadata.role === "admin" || publicMetadata.role === "super_admin";
+
+  return json({ userId, isAdmin });
+}
+
+function AccessDenied() {
+  return (
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <div className="bg-white rounded-lg shadow-sm p-8 max-w-md text-center">
+        <div className="text-6xl mb-4">🔒</div>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
+        <p className="text-gray-600 mb-6">
+          You don't have permission to access the admin panel.
+          Please contact an administrator if you believe this is an error.
+        </p>
+        <div className="flex gap-4 justify-center">
+          <Link
+            to="/"
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            Go to Homepage
+          </Link>
+          <UserButton afterSignOutUrl="/" />
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export default function AdminLayout() {
+  const { isAdmin } = useLoaderData<typeof loader>();
   const location = useLocation();
+
+  // Show access denied if user is not an admin
+  if (!isAdmin) {
+    return <AccessDenied />;
+  }
 
   const navItems = [
     { path: "/admin", label: "Dashboard", exact: true },
