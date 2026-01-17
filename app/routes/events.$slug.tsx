@@ -11,6 +11,8 @@ import { events, attendees, rsvps } from "~/lib/schema";
 import { rsvpFormSchema, parseFormData } from "~/utils/validation";
 import { formatDate, formatTimeRange, isEventInPast } from "~/utils/date";
 import { sendEmail, buildRsvpConfirmationEmail } from "~/lib/email.server";
+import { getAuth } from "@clerk/remix/ssr.server";
+import { SignInButton, useUser } from "@clerk/remix";
 
 type ActionData =
   | { success: true; message: string; isWaitlist: boolean }
@@ -26,7 +28,8 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   ];
 };
 
-export async function loader({ params, context }: LoaderFunctionArgs) {
+export async function loader(args: LoaderFunctionArgs) {
+  const { params, context } = args;
   const db = getDb(context?.cloudflare?.env.DB);
   const { slug } = params;
 
@@ -55,17 +58,25 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
   const spotsRemaining = event.capacity ? event.capacity - rsvpCount : null;
   const isAtCapacity = event.capacity !== null && rsvpCount >= event.capacity;
 
+  // Get Clerk user info if signed in
+  const { userId } = await getAuth(args);
+
   return json({
     event,
     rsvpCount,
     spotsRemaining,
     isAtCapacity,
+    isSignedIn: !!userId,
   });
 }
 
-export async function action({ params, request, context }: ActionFunctionArgs) {
+export async function action(args: ActionFunctionArgs) {
+  const { params, request, context } = args;
   const db = getDb(context?.cloudflare?.env.DB);
   const { slug } = params;
+
+  // Get Clerk user if signed in
+  const { userId: clerkUserId } = await getAuth(args);
 
   if (!slug) {
     throw new Response("Not Found", { status: 404 });
@@ -123,10 +134,19 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
       .values({
         email: email.toLowerCase(),
         name,
+        clerkUserId: clerkUserId || null,
       })
       .returning()
       .get();
     attendee = newAttendee;
+  } else if (clerkUserId && !attendee.clerkUserId) {
+    // Link existing attendee to Clerk user if they sign in later
+    await db
+      .update(attendees)
+      .set({ clerkUserId, name })
+      .where(eq(attendees.id, attendee.id))
+      .run();
+    attendee = { ...attendee, clerkUserId, name };
   }
 
   // Check for existing RSVP
@@ -240,11 +260,16 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
 }
 
 export default function EventDetail() {
-  const { event, rsvpCount, spotsRemaining, isAtCapacity } =
+  const { event, rsvpCount, spotsRemaining, isAtCapacity, isSignedIn } =
     useLoaderData<typeof loader>();
   const actionData = useActionData<ActionData>();
+  const { user } = useUser();
 
   const isPast = isEventInPast(event.date);
+
+  // Auto-fill values from Clerk user if signed in
+  const defaultName = user?.fullName || user?.firstName || "";
+  const defaultEmail = user?.primaryEmailAddress?.emailAddress || "";
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
@@ -355,6 +380,29 @@ export default function EventDetail() {
                     </div>
                   )}
 
+                  {/* Sign in prompt for guests */}
+                  {!isSignedIn && (
+                    <div className="rounded-lg bg-blue-50 p-3">
+                      <p className="text-sm text-blue-700">
+                        <SignInButton mode="modal">
+                          <button type="button" className="font-medium underline hover:text-blue-900">
+                            Sign in
+                          </button>
+                        </SignInButton>
+                        {" "}for faster checkout and to track your RSVPs
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Signed in user indicator */}
+                  {isSignedIn && user && (
+                    <div className="rounded-lg bg-green-50 p-3">
+                      <p className="text-sm text-green-700">
+                        Signed in as <span className="font-medium">{user.primaryEmailAddress?.emailAddress}</span>
+                      </p>
+                    </div>
+                  )}
+
                   <div>
                     <label
                       htmlFor="name"
@@ -367,6 +415,7 @@ export default function EventDetail() {
                       id="name"
                       name="name"
                       required
+                      defaultValue={defaultName}
                       className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                       aria-describedby={
                         actionData && !actionData.success && actionData.errors.name ? "name-error" : undefined
@@ -391,6 +440,7 @@ export default function EventDetail() {
                       id="email"
                       name="email"
                       required
+                      defaultValue={defaultEmail}
                       className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                       aria-describedby={
                         actionData && !actionData.success && actionData.errors.email ? "email-error" : undefined

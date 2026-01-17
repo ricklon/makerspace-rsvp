@@ -43,12 +43,14 @@ export const attendees = sqliteTable(
     id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
     email: text("email").notNull().unique(),
     name: text("name").notNull(),
+    clerkUserId: text("clerk_user_id"), // Optional - links to Clerk user if signed in
     createdAt: text("created_at")
       .notNull()
       .default(sql`(CURRENT_TIMESTAMP)`),
   },
   (table) => ({
     emailIdx: index("email_idx").on(table.email),
+    clerkUserIdIdx: index("clerk_user_id_idx").on(table.clerkUserId),
   })
 );
 
