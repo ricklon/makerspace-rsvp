@@ -13,6 +13,7 @@ import {
   describeRecurrenceRule,
   generateOccurrences,
 } from "~/lib/recurrence";
+import { formatTimeRange } from "~/utils/date";
 
 function slugify(text: string): string {
   return text
@@ -629,8 +630,7 @@ export default function AdminSeriesDetail() {
                         })}
                       </div>
                       <div className="text-sm text-gray-500">
-                        {instance.timeStart}
-                        {instance.timeEnd && ` - ${instance.timeEnd}`}
+                        {formatTimeRange(instance.timeStart, instance.timeEnd)}
                       </div>
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">

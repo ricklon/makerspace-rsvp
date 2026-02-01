@@ -4,6 +4,7 @@ import { useLoaderData, Link } from "@remix-run/react";
 import { getDb } from "~/lib/db.server";
 import { events, rsvps, attendance } from "~/lib/schema";
 import { eq, and, gte } from "drizzle-orm";
+import { formatTimeRange } from "~/utils/date";
 
 export async function loader({ context }: LoaderFunctionArgs) {
   const db = getDb(context?.cloudflare?.env.DB);
@@ -101,7 +102,7 @@ export default function AdminDashboard() {
                         <div className="sm:flex">
                           <p className="flex items-center text-sm text-gray-500">
                             {new Date(event.date).toLocaleDateString()} at{" "}
-                            {event.timeStart}
+                            {formatTimeRange(event.timeStart, event.timeEnd)}
                           </p>
                         </div>
                         <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">

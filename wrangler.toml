@@ -26,4 +26,5 @@ migrations_dir = "db/migrations"
 # - ADMIN_PASSWORD_HASH
 # - MAKERSPACE_NAME (optional - defaults to "Makerspace")
 # - MAKERSPACE_URL (optional - for email links)
+# - TIMEZONE (optional - defaults to "America/New_York", e.g., "America/Los_Angeles")
 # - DISCORD_WEBHOOK_URL (optional)

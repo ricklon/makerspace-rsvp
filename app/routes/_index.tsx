@@ -4,6 +4,7 @@ import { useLoaderData, Link } from "@remix-run/react";
 import { getDb } from "~/lib/db.server";
 import { events } from "~/lib/schema";
 import { sql } from "drizzle-orm";
+import { formatTimeRange } from "~/utils/date";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   const makerspaceName = data?.makerspaceName || "Makerspace";
@@ -85,7 +86,7 @@ export default function Index() {
                 </h3>
                 <div className="mt-2 space-y-1 text-sm text-gray-600">
                   <p>📅 {new Date(event.date).toLocaleDateString()}</p>
-                  <p>🕐 {event.timeStart}</p>
+                  <p>🕐 {formatTimeRange(event.timeStart, event.timeEnd)}</p>
                   <p>📍 {event.location}</p>
                   {event.capacity && (
                     <p className="text-xs text-gray-500">
