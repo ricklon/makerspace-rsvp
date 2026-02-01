@@ -9,7 +9,7 @@ import { eq, and } from "drizzle-orm";
 import { getDb } from "~/lib/db.server";
 import { events, attendees, rsvps } from "~/lib/schema";
 import { rsvpFormSchema, parseFormData } from "~/utils/validation";
-import { formatDate, formatTimeRange, isEventInPast } from "~/utils/date";
+import { formatDate, formatTimeRangeWithTimezone, isEventInPast } from "~/utils/date";
 import { sendEmail, buildRsvpConfirmationEmail } from "~/lib/email.server";
 import { getAuth } from "@clerk/remix/ssr.server";
 import { SignInButton, useUser } from "@clerk/remix";
@@ -181,7 +181,7 @@ export async function action(args: ActionFunctionArgs) {
       attendeeName: name,
       eventName: event.name,
       eventDate: formatDate(event.date),
-      eventTime: formatTimeRange(event.timeStart, event.timeEnd),
+      eventTime: formatTimeRangeWithTimezone(event.timeStart, event.timeEnd),
       eventLocation: event.location,
       confirmationUrl,
       isWaitlist: isAtCapacity,
@@ -232,7 +232,7 @@ export async function action(args: ActionFunctionArgs) {
     attendeeName: name,
     eventName: event.name,
     eventDate: formatDate(event.date),
-    eventTime: formatTimeRange(event.timeStart, event.timeEnd),
+    eventTime: formatTimeRangeWithTimezone(event.timeStart, event.timeEnd),
     eventLocation: event.location,
     confirmationUrl,
     isWaitlist: isAtCapacity,
@@ -300,7 +300,7 @@ export default function EventDetail() {
                 </p>
                 <p className="flex items-center gap-2">
                   <span className="text-lg">🕐</span>
-                  {formatTimeRange(event.timeStart, event.timeEnd)}
+                  {formatTimeRangeWithTimezone(event.timeStart, event.timeEnd)}
                 </p>
                 <p className="flex items-center gap-2">
                   <span className="text-lg">📍</span>

@@ -2,6 +2,19 @@
 // Set TIMEZONE env var to your local timezone (e.g., "America/New_York")
 const DEFAULT_TIMEZONE = "America/New_York";
 
+// Short timezone labels for display
+const TIMEZONE_LABELS: Record<string, string> = {
+  "America/New_York": "ET",
+  "America/Chicago": "CT",
+  "America/Denver": "MT",
+  "America/Los_Angeles": "PT",
+  "America/Sao_Paulo": "BRT",
+  "Europe/London": "GMT",
+  "Europe/Paris": "CET",
+  "Asia/Tokyo": "JST",
+  "Australia/Sydney": "AEST",
+};
+
 /**
  * Format a date string (YYYY-MM-DD) for display
  * Uses UTC to avoid timezone shift issues
@@ -35,23 +48,39 @@ export function formatDateShort(dateString: string): string {
   });
 }
 
+/**
+ * Get the short timezone label (e.g., "ET" for America/New_York)
+ */
+export function getTimezoneLabel(timezone?: string): string {
+  const tz = timezone || DEFAULT_TIMEZONE;
+  return TIMEZONE_LABELS[tz] || tz.split("/").pop() || tz;
+}
+
 export function formatTime(timeString: string, timezone?: string): string {
   const tz = timezone || DEFAULT_TIMEZONE;
-  const [hours, minutes] = timeString.split(":");
-  // Create a date string that won't shift due to timezone
-  const date = new Date(`2000-01-01T${timeString}:00`);
-  return date.toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-    timeZone: tz,
-  });
+  // Parse hours and minutes directly to avoid timezone issues
+  const [hours, minutes] = timeString.split(":").map(Number);
+  const isPM = hours >= 12;
+  const hour12 = hours % 12 || 12;
+  const ampm = isPM ? "PM" : "AM";
+  const mins = String(minutes).padStart(2, "0");
+  return `${hour12}:${mins} ${ampm}`;
 }
 
 export function formatTimeRange(start: string, end?: string | null, timezone?: string): string {
   const startFormatted = formatTime(start, timezone);
   if (!end) return startFormatted;
   return `${startFormatted} - ${formatTime(end, timezone)}`;
+}
+
+/**
+ * Format time range with timezone indicator (e.g., "7:00 PM - 9:00 PM ET")
+ * Use this for public-facing displays where international attendees need timezone context
+ */
+export function formatTimeRangeWithTimezone(start: string, end?: string | null, timezone?: string): string {
+  const timeRange = formatTimeRange(start, end, timezone);
+  const tzLabel = getTimezoneLabel(timezone);
+  return `${timeRange} ${tzLabel}`;
 }
 
 export function isEventInPast(dateString: string): boolean {

@@ -8,7 +8,7 @@ import { useLoaderData, useActionData, Form, Link } from "@remix-run/react";
 import { eq, and } from "drizzle-orm";
 import { getDb } from "~/lib/db.server";
 import { events, attendees, rsvps, attendance, waivers } from "~/lib/schema";
-import { formatDate, formatTimeRange } from "~/utils/date";
+import { formatDate, formatTimeRangeWithTimezone } from "~/utils/date";
 
 type LoaderData = {
   event: {
@@ -259,7 +259,7 @@ export default function CheckinPage() {
                 <h2 className="font-semibold text-gray-900">{event.name}</h2>
                 <div className="mt-2 space-y-1 text-sm text-gray-600">
                   <p>📅 {formatDate(event.date)}</p>
-                  <p>🕐 {formatTimeRange(event.timeStart, event.timeEnd)}</p>
+                  <p>🕐 {formatTimeRangeWithTimezone(event.timeStart, event.timeEnd)}</p>
                   <p>📍 {event.location}</p>
                 </div>
               </div>
@@ -311,7 +311,7 @@ export default function CheckinPage() {
                 <h2 className="font-semibold text-gray-900">{event.name}</h2>
                 <div className="mt-2 space-y-1 text-sm text-gray-600">
                   <p>📅 {formatDate(event.date)}</p>
-                  <p>🕐 {formatTimeRange(event.timeStart, event.timeEnd)}</p>
+                  <p>🕐 {formatTimeRangeWithTimezone(event.timeStart, event.timeEnd)}</p>
                   <p>📍 {event.location}</p>
                 </div>
               </div>

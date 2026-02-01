@@ -5,7 +5,7 @@ import { eq, and } from "drizzle-orm";
 import { QRCodeSVG } from "qrcode.react";
 import { getDb } from "~/lib/db.server";
 import { events, attendees, rsvps, waivers } from "~/lib/schema";
-import { formatDate, formatTimeRange } from "~/utils/date";
+import { formatDate, formatTimeRangeWithTimezone } from "~/utils/date";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data?.event) {
@@ -148,7 +148,7 @@ export default function ConfirmationPage() {
               </p>
               <p className="flex items-center gap-2">
                 <span>🕐</span>
-                {formatTimeRange(event.timeStart, event.timeEnd)}
+                {formatTimeRangeWithTimezone(event.timeStart, event.timeEnd)}
               </p>
               <p className="flex items-center gap-2">
                 <span>📍</span>

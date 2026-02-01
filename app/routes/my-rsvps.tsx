@@ -10,7 +10,7 @@ import { getDb } from "~/lib/db.server";
 import { events, attendees, rsvps, attendance } from "~/lib/schema";
 import { getAuth } from "@clerk/remix/ssr.server";
 import { SignInButton, useUser } from "@clerk/remix";
-import { formatDate, formatTimeRange } from "~/utils/date";
+import { formatDate, formatTimeRangeWithTimezone } from "~/utils/date";
 
 export const meta: MetaFunction = () => {
   return [
@@ -382,7 +382,7 @@ function RsvpCard({ item, isPast }: { item: RsvpWithEvent; isPast?: boolean }) {
           </Link>
           <div className="mt-1 space-y-1 text-sm text-gray-600">
             <p>{formatDate(item.event.date)}</p>
-            <p>{formatTimeRange(item.event.timeStart, item.event.timeEnd)}</p>
+            <p>{formatTimeRangeWithTimezone(item.event.timeStart, item.event.timeEnd)}</p>
             <p>{item.event.location}</p>
           </div>
         </div>
