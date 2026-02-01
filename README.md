@@ -53,6 +53,7 @@ Most event management tools are:
 - Node.js 20+
 - pnpm 9+
 - Cloudflare account (free tier works great)
+- Clerk account (free tier available at [clerk.com](https://clerk.com))
 
 ### 1. Clone and Install
 
@@ -106,6 +107,7 @@ pnpm dev
 - **UI**: React + TypeScript + Tailwind CSS + shadcn/ui
 - **Database**: Cloudflare D1 (SQLite)
 - **ORM**: Drizzle ORM (type-safe queries)
+- **Auth**: Clerk (OAuth, role-based access)
 - **Deployment**: Cloudflare Pages + Workers
 - **Email**: Resend or SendGrid
 - **Package Manager**: pnpm
@@ -129,6 +131,32 @@ Every makerspace is different! Customize:
 - **Check-in workflow** - QR codes, manual, or both
 
 See [CUSTOMIZING.md](CUSTOMIZING.md) for details.
+
+## Authentication & Admin Access
+
+Authentication is handled by [Clerk](https://clerk.com), providing secure OAuth login (Google, GitHub, etc.).
+
+### Role-Based Access
+
+- **super_admin** - Full access, can approve/deny admin requests
+- **admin** - Can manage events and view attendees
+- **user** - Can RSVP to events and view their reservations
+
+### Setting Up the First Admin
+
+1. Have a user sign in and request admin access at `/admin`
+2. Set their role directly via Clerk API or Dashboard:
+   ```bash
+   curl -X PATCH "https://api.clerk.com/v1/users/USER_ID/metadata" \
+     -H "Authorization: Bearer YOUR_CLERK_SECRET_KEY" \
+     -H "Content-Type: application/json" \
+     -d '{"public_metadata": {"role": "super_admin"}}'
+   ```
+3. Configure Clerk session token to include metadata:
+   - Clerk Dashboard → Sessions → Customize session token
+   - Add: `{"publicMetadata": "{{user.public_metadata}}"}`
+
+After the first super_admin is set up, they can approve future admin requests directly from `/admin/requests`.
 
 ## Deployment
 
@@ -182,7 +210,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 - [ ] Slack notifications
 - [ ] Real-time check-in dashboard
 - [ ] Event analytics
-- [ ] Multi-admin support
+- [x] Multi-admin support with role-based access
 
 **v1.0** - Production-ready
 - [ ] Comprehensive test coverage

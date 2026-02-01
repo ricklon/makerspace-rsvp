@@ -53,7 +53,7 @@ export default function AdminDashboard() {
           <h2 className="text-lg font-medium text-gray-900">Upcoming Events</h2>
           <Link
             to="/admin/events/new"
-            className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
           >
             Create Event
           </Link>
@@ -64,7 +64,7 @@ export default function AdminDashboard() {
             <p className="text-gray-500">No upcoming events</p>
             <Link
               to="/admin/events/new"
-              className="mt-2 inline-block text-sm text-blue-600 hover:text-blue-800"
+              className="mt-2 inline-block text-sm text-primary hover:text-primary/80"
             >
               Create your first event
             </Link>
@@ -80,7 +80,7 @@ export default function AdminDashboard() {
                   >
                     <div className="px-4 py-4 sm:px-6">
                       <div className="flex items-center justify-between">
-                        <p className="truncate text-sm font-medium text-blue-600">
+                        <p className="truncate text-sm font-medium text-primary">
                           {event.name}
                         </p>
                         <div className="ml-2 flex flex-shrink-0">

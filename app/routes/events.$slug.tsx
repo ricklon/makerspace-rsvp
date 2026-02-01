@@ -278,7 +278,7 @@ export default function EventDetail() {
         <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
           <Link
             to="/"
-            className="text-sm text-blue-600 hover:text-blue-800"
+            className="text-sm text-primary hover:text-primary/80"
           >
             &larr; Back to Events
           </Link>
@@ -324,7 +324,7 @@ export default function EventDetail() {
                   href={event.discordLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-4 inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800"
+                  className="mt-4 inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80"
                 >
                   Join our Discord for updates
                 </a>
@@ -382,10 +382,10 @@ export default function EventDetail() {
 
                   {/* Sign in prompt for guests */}
                   {!isSignedIn && (
-                    <div className="rounded-lg bg-blue-50 p-3">
-                      <p className="text-sm text-blue-700">
+                    <div className="rounded-lg bg-primary/10 p-3">
+                      <p className="text-sm text-primary">
                         <SignInButton mode="modal">
-                          <button type="button" className="font-medium underline hover:text-blue-900">
+                          <button type="button" className="font-medium underline hover:text-primary/80">
                             Sign in
                           </button>
                         </SignInButton>
@@ -416,7 +416,7 @@ export default function EventDetail() {
                       name="name"
                       required
                       defaultValue={defaultName}
-                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                       aria-describedby={
                         actionData && !actionData.success && actionData.errors.name ? "name-error" : undefined
                       }
@@ -441,7 +441,7 @@ export default function EventDetail() {
                       name="email"
                       required
                       defaultValue={defaultEmail}
-                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                       aria-describedby={
                         actionData && !actionData.success && actionData.errors.email ? "email-error" : undefined
                       }
@@ -464,14 +464,14 @@ export default function EventDetail() {
                       id="notes"
                       name="notes"
                       rows={3}
-                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                       placeholder="Any dietary restrictions, questions, etc."
                     />
                   </div>
 
                   <button
                     type="submit"
-                    className="w-full rounded-md bg-blue-600 px-4 py-2 text-white font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
+                    className="w-full rounded-md bg-primary px-4 py-2 text-primary-foreground font-medium hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50"
                   >
                     {isAtCapacity ? "Join Waitlist" : "RSVP Now"}
                   </button>

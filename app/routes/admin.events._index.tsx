@@ -46,7 +46,7 @@ export default function AdminEvents() {
         <h1 className="text-2xl font-bold text-gray-900">Events</h1>
         <Link
           to="/admin/events/new"
-          className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
         >
           Create Event
         </Link>
@@ -60,7 +60,7 @@ export default function AdminEvents() {
           </p>
           <Link
             to="/admin/events/new"
-            className="mt-4 inline-block rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+            className="mt-4 inline-block rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
           >
             Create Event
           </Link>
@@ -135,7 +135,7 @@ export default function AdminEvents() {
                   <td className="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
                     <Link
                       to={`/admin/events/${event.id}`}
-                      className="text-blue-600 hover:text-blue-900"
+                      className="text-primary hover:text-primary/80"
                     >
                       Manage
                     </Link>

@@ -219,7 +219,7 @@ export default function CheckinPage() {
       {/* Header */}
       <header className="bg-white shadow-sm">
         <div className="mx-auto max-w-lg px-4 py-6 sm:px-6">
-          <Link to="/" className="text-sm text-blue-600 hover:text-blue-800">
+          <Link to="/" className="text-sm text-primary hover:text-primary/80">
             &larr; Back to Events
           </Link>
         </div>
@@ -297,7 +297,7 @@ export default function CheckinPage() {
 
               <Link
                 to={`/events/${event.slug}`}
-                className="mt-6 inline-block rounded-md bg-blue-600 px-6 py-2 text-white font-medium hover:bg-blue-700"
+                className="mt-6 inline-block rounded-md bg-primary px-6 py-2 text-primary-foreground font-medium hover:bg-primary/90"
               >
                 Go to Event Page
               </Link>

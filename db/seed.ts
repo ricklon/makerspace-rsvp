@@ -1,14 +1,18 @@
-import { drizzle } from "drizzle-orm/d1";
-import { D1Database } from "@cloudflare/workers-types";
+import Database from "better-sqlite3";
+import { drizzle } from "drizzle-orm/better-sqlite3";
 import * as schema from "../app/lib/schema";
 
 /**
  * Seed script for local development database
- * 
+ *
  * Run with: pnpm db:seed
- * 
+ *
  * This creates sample events for testing. Customize these for your makerspace!
  */
+
+// Connect to local SQLite database
+const sqlite = new Database("./dev.db");
+const db = drizzle(sqlite, { schema });
 
 // Example events - customize these for your space
 const sampleEvents = [
@@ -82,11 +86,26 @@ const sampleEvents = [
   },
 ];
 
-console.log("Sample events for seeding:");
-console.log(JSON.stringify(sampleEvents, null, 2));
-console.log("\n📝 Customize these events for your makerspace!");
-console.log("\nTo seed the database:");
-console.log("1. Run migrations first: pnpm db:migrate:prod");
-console.log("2. Use Drizzle Studio: pnpm db:studio");
-console.log("3. Or create events via the admin interface");
-console.log("\n💡 Tip: Update event names, locations, and descriptions to match your space!");
+async function seed() {
+  console.log("🌱 Seeding database...\n");
+
+  // Clear existing events
+  db.delete(schema.events).run();
+  console.log("  Cleared existing events");
+
+  // Insert sample events
+  for (const event of sampleEvents) {
+    db.insert(schema.events).values(event).run();
+    console.log(`  ✓ Created: ${event.name}`);
+  }
+
+  console.log("\n✅ Seeding complete!");
+  console.log(`   Added ${sampleEvents.length} events`);
+
+  sqlite.close();
+}
+
+seed().catch((err) => {
+  console.error("❌ Seeding failed:", err);
+  process.exit(1);
+});

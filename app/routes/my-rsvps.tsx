@@ -200,12 +200,12 @@ export default function MyRsvps() {
       <header className="bg-white shadow-sm">
         <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
-            <Link to="/" className="text-sm text-blue-600 hover:text-blue-800">
+            <Link to="/" className="text-sm text-primary hover:text-primary/80">
               &larr; Back to Events
             </Link>
             {!isSignedIn && (
               <SignInButton mode="modal">
-                <button className="text-sm font-medium text-blue-600 hover:text-blue-800">
+                <button className="text-sm font-medium text-primary hover:text-primary/80">
                   Sign In
                 </button>
               </SignInButton>
@@ -240,7 +240,7 @@ export default function MyRsvps() {
                 <p className="text-gray-600">You haven't RSVP'd to any events yet.</p>
                 <Link
                   to="/"
-                  className="mt-4 inline-block text-blue-600 hover:text-blue-800"
+                  className="mt-4 inline-block text-primary hover:text-primary/80"
                 >
                   Browse upcoming events
                 </Link>
@@ -254,10 +254,10 @@ export default function MyRsvps() {
         {/* Guest - show email lookup form */}
         {!isSignedIn && (
           <div className="mt-6">
-            <div className="mb-6 rounded-lg bg-blue-50 p-4">
-              <p className="text-sm text-blue-700">
+            <div className="mb-6 rounded-lg bg-primary/10 p-4">
+              <p className="text-sm text-primary">
                 <SignInButton mode="modal">
-                  <button className="font-medium underline hover:text-blue-900">
+                  <button className="font-medium underline hover:text-primary/80">
                     Sign in
                   </button>
                 </SignInButton>
@@ -281,12 +281,12 @@ export default function MyRsvps() {
                     required
                     defaultValue={lookupEmail}
                     placeholder="Enter the email you used to RSVP"
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
                 <button
                   type="submit"
-                  className="w-full rounded-md bg-blue-600 px-4 py-2 text-white font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                  className="w-full rounded-md bg-primary px-4 py-2 text-primary-foreground font-medium hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
                 >
                   Look Up My RSVPs
                 </button>
@@ -376,7 +376,7 @@ function RsvpCard({ item, isPast }: { item: RsvpWithEvent; isPast?: boolean }) {
         <div>
           <Link
             to={`/events/${item.event.slug}`}
-            className="text-lg font-medium text-gray-900 hover:text-blue-600"
+            className="text-lg font-medium text-gray-900 hover:text-primary"
           >
             {item.event.name}
           </Link>
@@ -398,7 +398,7 @@ function RsvpCard({ item, isPast }: { item: RsvpWithEvent; isPast?: boolean }) {
                 item.rsvp.status.slice(1)}
           </span>
           {item.checkedIn && (
-            <span className="inline-flex rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">
+            <span className="inline-flex rounded-full bg-primary/20 px-2 py-1 text-xs font-medium text-primary">
               Checked In
             </span>
           )}
@@ -408,7 +408,7 @@ function RsvpCard({ item, isPast }: { item: RsvpWithEvent; isPast?: boolean }) {
         <div className="mt-3 pt-3 border-t border-gray-100">
           <Link
             to={`/events/${item.event.slug}/confirmation?token=${item.rsvp.confirmationToken}`}
-            className="text-sm text-blue-600 hover:text-blue-800"
+            className="text-sm text-primary hover:text-primary/80"
           >
             View confirmation &amp; QR code &rarr;
           </Link>

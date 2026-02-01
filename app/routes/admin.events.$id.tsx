@@ -168,7 +168,7 @@ export default function AdminEventDetail() {
       <div className="mb-6">
         <Link
           to="/admin/events"
-          className="text-sm text-blue-600 hover:text-blue-800"
+          className="text-sm text-primary hover:text-primary/80"
         >
           &larr; Back to Events
         </Link>
@@ -198,7 +198,7 @@ export default function AdminEventDetail() {
                   id="name"
                   name="name"
                   defaultValue={event.name}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
 
@@ -212,7 +212,7 @@ export default function AdminEventDetail() {
                     id="date"
                     name="date"
                     defaultValue={event.date}
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
                 <div>
@@ -224,7 +224,7 @@ export default function AdminEventDetail() {
                     id="timeStart"
                     name="timeStart"
                     defaultValue={event.timeStart}
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
                 <div>
@@ -236,7 +236,7 @@ export default function AdminEventDetail() {
                     id="timeEnd"
                     name="timeEnd"
                     defaultValue={event.timeEnd || ""}
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
               </div>
@@ -250,7 +250,7 @@ export default function AdminEventDetail() {
                   id="location"
                   name="location"
                   defaultValue={event.location}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
 
@@ -263,7 +263,7 @@ export default function AdminEventDetail() {
                   name="description"
                   rows={4}
                   defaultValue={event.description}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
 
@@ -277,7 +277,7 @@ export default function AdminEventDetail() {
                   name="capacity"
                   min="1"
                   defaultValue={event.capacity || ""}
-                  className="mt-1 block w-48 rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="mt-1 block w-48 rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
 
@@ -287,7 +287,7 @@ export default function AdminEventDetail() {
                     type="checkbox"
                     name="requiresWaiver"
                     defaultChecked={event.requiresWaiver}
-                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
                   />
                   <span className="ml-2 text-sm font-medium text-gray-700">
                     Requires waiver signature
@@ -302,7 +302,7 @@ export default function AdminEventDetail() {
                     name="waiverText"
                     rows={3}
                     defaultValue={event.waiverText || ""}
-                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
               </div>
@@ -316,7 +316,7 @@ export default function AdminEventDetail() {
                   id="discordLink"
                   name="discordLink"
                   defaultValue={event.discordLink || ""}
-                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
 
@@ -328,7 +328,7 @@ export default function AdminEventDetail() {
                   id="status"
                   name="status"
                   defaultValue={event.status}
-                  className="mt-1 block w-48 rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="mt-1 block w-48 rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                 >
                   <option value="draft">Draft</option>
                   <option value="published">Published</option>
@@ -339,7 +339,7 @@ export default function AdminEventDetail() {
               <div className="flex gap-4 pt-4">
                 <button
                   type="submit"
-                  className="rounded-md bg-blue-600 px-6 py-2 text-white font-medium hover:bg-blue-700"
+                  className="rounded-md bg-primary px-6 py-2 text-primary-foreground font-medium hover:bg-primary/90"
                 >
                   Save Changes
                 </button>
@@ -410,7 +410,7 @@ export default function AdminEventDetail() {
                   href={`/events/${event.slug}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-sm text-blue-600 hover:text-blue-800 break-all"
+                  className="text-sm text-primary hover:text-primary/80 break-all"
                 >
                   /events/{event.slug}
                 </a>

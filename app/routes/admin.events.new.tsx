@@ -90,7 +90,7 @@ export default function NewEvent() {
       <div className="mb-6">
         <Link
           to="/admin/events"
-          className="text-sm text-blue-600 hover:text-blue-800"
+          className="text-sm text-primary hover:text-primary/80"
         >
           &larr; Back to Events
         </Link>
@@ -108,7 +108,7 @@ export default function NewEvent() {
             type="text"
             id="name"
             name="name"
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             placeholder="Robot Combat Championship"
           />
           {actionData?.errors?.name && (
@@ -126,7 +126,7 @@ export default function NewEvent() {
               type="date"
               id="date"
               name="date"
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             />
             {actionData?.errors?.date && (
               <p className="mt-1 text-sm text-red-600">{actionData.errors.date}</p>
@@ -140,7 +140,7 @@ export default function NewEvent() {
               type="time"
               id="timeStart"
               name="timeStart"
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             />
             {actionData?.errors?.timeStart && (
               <p className="mt-1 text-sm text-red-600">{actionData.errors.timeStart}</p>
@@ -154,7 +154,7 @@ export default function NewEvent() {
               type="time"
               id="timeEnd"
               name="timeEnd"
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             />
           </div>
         </div>
@@ -168,7 +168,7 @@ export default function NewEvent() {
             type="text"
             id="location"
             name="location"
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             placeholder="Fubar Labs, 303 3rd Ave, New Brunswick, NJ"
           />
           {actionData?.errors?.location && (
@@ -185,7 +185,7 @@ export default function NewEvent() {
             id="description"
             name="description"
             rows={4}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             placeholder="Tell attendees what to expect..."
           />
           {actionData?.errors?.description && (
@@ -203,7 +203,7 @@ export default function NewEvent() {
             id="capacity"
             name="capacity"
             min="1"
-            className="mt-1 block w-48 rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="mt-1 block w-48 rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             placeholder="50"
           />
         </div>
@@ -214,7 +214,7 @@ export default function NewEvent() {
             <input
               type="checkbox"
               name="requiresWaiver"
-              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
             />
             <span className="ml-2 text-sm font-medium text-gray-700">
               Requires waiver signature
@@ -228,7 +228,7 @@ export default function NewEvent() {
               id="waiverText"
               name="waiverText"
               rows={3}
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               placeholder="Event-specific terms beyond the default waiver..."
             />
             <p className="mt-1 text-xs text-gray-500">
@@ -246,7 +246,7 @@ export default function NewEvent() {
             type="url"
             id="discordLink"
             name="discordLink"
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
             placeholder="https://discord.gg/..."
           />
         </div>
@@ -259,7 +259,7 @@ export default function NewEvent() {
           <select
             id="status"
             name="status"
-            className="mt-1 block w-48 rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="mt-1 block w-48 rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
           >
             <option value="draft">Draft</option>
             <option value="published">Published</option>
@@ -273,7 +273,7 @@ export default function NewEvent() {
         <div className="flex gap-4 pt-4">
           <button
             type="submit"
-            className="rounded-md bg-blue-600 px-6 py-2 text-white font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="rounded-md bg-primary px-6 py-2 text-primary-foreground font-medium hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
           >
             Create Event
           </button>

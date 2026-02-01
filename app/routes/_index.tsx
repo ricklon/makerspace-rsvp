@@ -49,7 +49,7 @@ export default function Index() {
               </Link>
               <Link
                 to="/admin"
-                className="text-sm font-medium text-blue-600 hover:text-blue-800"
+                className="text-sm font-medium text-primary hover:text-primary/80"
               >
                 Admin
               </Link>
@@ -80,7 +80,7 @@ export default function Index() {
                 to={`/events/${event.slug}`}
                 className="group rounded-lg bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
               >
-                <h3 className="text-xl font-semibold text-gray-900 group-hover:text-blue-600">
+                <h3 className="text-xl font-semibold text-gray-900 group-hover:text-primary">
                   {event.name}
                 </h3>
                 <div className="mt-2 space-y-1 text-sm text-gray-600">
@@ -96,7 +96,7 @@ export default function Index() {
                 <p className="mt-4 line-clamp-2 text-sm text-gray-600">
                   {event.description}
                 </p>
-                <div className="mt-4 text-sm font-medium text-blue-600 group-hover:text-blue-800">
+                <div className="mt-4 text-sm font-medium text-primary group-hover:text-primary/80">
                   RSVP Now →
                 </div>
               </Link>
@@ -111,13 +111,13 @@ export default function Index() {
           <div className="text-center text-sm text-gray-600 space-y-2">
             <p className="font-medium">{makerspaceName}</p>
             <p>New Jersey's First Hackerspace</p>
-            <p>1510 Jersey Ave, North Brunswick, NJ 08902</p>
+            <p>1510B Jersey Ave, North Brunswick, NJ 08902</p>
             <div className="flex justify-center gap-4 mt-4">
               <a
                 href="https://fubarlabs.org"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-600 hover:text-blue-800"
+                className="text-primary hover:text-primary/80"
               >
                 Website
               </a>
@@ -125,7 +125,7 @@ export default function Index() {
                 href="https://discord.gg/dVs42Xz9Ns"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-600 hover:text-blue-800"
+                className="text-primary hover:text-primary/80"
               >
                 Discord
               </a>

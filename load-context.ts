@@ -22,6 +22,9 @@ interface Env {
   
   // Optional Integrations
   DISCORD_WEBHOOK_URL?: string;
+
+  // Clerk Authentication
+  CLERK_SECRET_KEY?: string;
 }
 
 type Cloudflare = Omit<PlatformProxy<Env>, "dispose">;

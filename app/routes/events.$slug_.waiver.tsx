@@ -267,7 +267,7 @@ export default function WaiverPage() {
         <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6 lg:px-8">
           <Link
             to={`/events/${event.slug}`}
-            className="text-sm text-blue-600 hover:text-blue-800"
+            className="text-sm text-primary hover:text-primary/80"
           >
             &larr; Back to Event
           </Link>
@@ -285,8 +285,8 @@ export default function WaiverPage() {
             Attendee: <strong>{attendee.name}</strong> ({attendee.email})
           </p>
 
-          <div className="mt-4 rounded-lg bg-blue-50 p-4">
-            <p className="text-sm text-blue-800">{waiverConfig.introduction}</p>
+          <div className="mt-4 rounded-lg bg-primary/10 p-4">
+            <p className="text-sm text-primary">{waiverConfig.introduction}</p>
           </div>
 
           <Form method="post" className="mt-6 space-y-6">
@@ -352,7 +352,7 @@ export default function WaiverPage() {
                 <input
                   type="checkbox"
                   name="final_confirmation"
-                  className="mt-1 h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  className="mt-1 h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary"
                 />
                 <span className="text-sm font-medium text-gray-900">
                   {waiverConfig.signature.label}
@@ -364,7 +364,7 @@ export default function WaiverPage() {
             <div className="flex gap-4">
               <button
                 type="submit"
-                className="flex-1 rounded-md bg-blue-600 px-4 py-3 text-white font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                className="flex-1 rounded-md bg-primary px-4 py-3 text-primary-foreground font-medium hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
               >
                 Sign Waiver & Complete Registration
               </button>
@@ -398,7 +398,7 @@ function WaiverCheckbox({
           type="checkbox"
           name={`consent_${item.id}`}
           defaultChecked={item.defaultChecked}
-          className="mt-1 h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          className="mt-1 h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary"
         />
         <div className="flex-1">
           <span className="font-medium text-gray-900">

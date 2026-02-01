@@ -216,7 +216,7 @@ export default function AdminScanPage() {
           <div className="flex items-center justify-between">
             <Link
               to={`/admin/events/${event.id}`}
-              className="text-sm text-blue-400 hover:text-blue-300"
+              className="text-sm text-primary hover:text-primary/80"
             >
               &larr; Back to Event
             </Link>

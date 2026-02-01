@@ -150,6 +150,30 @@ export const attendance = sqliteTable(
   })
 );
 
+// Admin access requests table
+export const adminRequests = sqliteTable(
+  "admin_requests",
+  {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    clerkUserId: text("clerk_user_id").notNull().unique(),
+    email: text("email").notNull(),
+    name: text("name").notNull(),
+    reason: text("reason"), // Optional reason for requesting access
+    status: text("status", { enum: ["pending", "approved", "denied"] })
+      .notNull()
+      .default("pending"),
+    reviewedBy: text("reviewed_by"), // Clerk user ID of admin who reviewed
+    reviewedAt: text("reviewed_at"),
+    createdAt: text("created_at")
+      .notNull()
+      .default(sql`(CURRENT_TIMESTAMP)`),
+  },
+  (table) => ({
+    clerkUserIdIdx: index("admin_request_clerk_user_id_idx").on(table.clerkUserId),
+    statusIdx: index("admin_request_status_idx").on(table.status),
+  })
+);
+
 // Type exports
 export type Event = typeof events.$inferSelect;
 export type NewEvent = typeof events.$inferInsert;
@@ -161,3 +185,5 @@ export type Waiver = typeof waivers.$inferSelect;
 export type NewWaiver = typeof waivers.$inferInsert;
 export type Attendance = typeof attendance.$inferSelect;
 export type NewAttendance = typeof attendance.$inferInsert;
+export type AdminRequest = typeof adminRequests.$inferSelect;
+export type NewAdminRequest = typeof adminRequests.$inferInsert;

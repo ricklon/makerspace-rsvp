@@ -102,7 +102,7 @@ export default function ConfirmationPage() {
       {/* Header */}
       <header className="bg-white shadow-sm">
         <div className="mx-auto max-w-3xl px-4 py-6 sm:px-6 lg:px-8">
-          <Link to="/" className="text-sm text-blue-600 hover:text-blue-800">
+          <Link to="/" className="text-sm text-primary hover:text-primary/80">
             &larr; Back to Events
           </Link>
         </div>
@@ -223,7 +223,7 @@ export default function ConfirmationPage() {
                 </p>
                 <a
                   href={checkinUrl}
-                  className="text-xs text-blue-600 hover:text-blue-800 break-all text-center block"
+                  className="text-xs text-primary hover:text-primary/80 break-all text-center block"
                 >
                   {checkinUrl}
                 </a>
@@ -247,7 +247,7 @@ export default function ConfirmationPage() {
                     href={event.discordLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-600 hover:text-blue-800"
+                    className="text-primary hover:text-primary/80"
                   >
                     Join our Discord
                   </a>{" "}
@@ -264,7 +264,7 @@ export default function ConfirmationPage() {
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
             <Link
               to="/"
-              className="rounded-md bg-blue-600 px-6 py-2 text-white font-medium hover:bg-blue-700"
+              className="rounded-md bg-primary px-6 py-2 text-primary-foreground font-medium hover:bg-primary/90"
             >
               Browse More Events
             </Link>
