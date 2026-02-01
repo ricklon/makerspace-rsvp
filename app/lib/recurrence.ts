@@ -68,24 +68,24 @@ export const occurrenceLabels: Record<number, string> = {
  * @param month - The month (0-indexed)
  * @param weekday - The day of the week (0=Sunday, 6=Saturday)
  * @param occurrence - Which occurrence (1-4, or -1 for last)
- * @returns The date, or null if it doesn't exist
+ * @returns The date string (YYYY-MM-DD), or null if it doesn't exist
  */
 export function getNthWeekdayOfMonth(
   year: number,
   month: number,
   weekday: number,
   occurrence: number
-): Date | null {
-  const firstOfMonth = new Date(year, month, 1);
+): string | null {
+  // Use UTC dates to avoid timezone issues
+  const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
 
   if (occurrence === -1) {
     // Find the last occurrence
-    const nextMonth = new Date(year, month + 1, 0); // Last day of current month
-    let day = nextMonth.getDate();
+    let day = daysInMonth;
     while (day > 0) {
-      const date = new Date(year, month, day);
-      if (getDay(date) === weekday) {
-        return date;
+      const date = new Date(Date.UTC(year, month, day));
+      if (date.getUTCDay() === weekday) {
+        return formatDateString(year, month, day);
       }
       day--;
     }
@@ -95,20 +95,28 @@ export function getNthWeekdayOfMonth(
   // Find the Nth occurrence
   let count = 0;
   let day = 1;
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
 
   while (day <= daysInMonth) {
-    const date = new Date(year, month, day);
-    if (getDay(date) === weekday) {
+    const date = new Date(Date.UTC(year, month, day));
+    if (date.getUTCDay() === weekday) {
       count++;
       if (count === occurrence) {
-        return date;
+        return formatDateString(year, month, day);
       }
     }
     day++;
   }
 
   return null; // The Nth occurrence doesn't exist in this month
+}
+
+/**
+ * Format year, month, day into YYYY-MM-DD string
+ */
+function formatDateString(year: number, month: number, day: number): string {
+  const m = String(month + 1).padStart(2, "0");
+  const d = String(day).padStart(2, "0");
+  return `${year}-${m}-${d}`;
 }
 
 /**
@@ -176,22 +184,22 @@ export function generateOccurrences(
     const pattern = rule.monthlyPattern;
 
     while (true) {
-      let date: Date | null = null;
+      let dateStr: string | null = null;
 
       if (pattern?.type === "dayOfMonth" && pattern.day) {
         // Simple day of month (e.g., 15th of every month)
-        const targetDay = Math.min(
-          pattern.day,
-          new Date(current.getFullYear(), current.getMonth() + 1, 0).getDate()
-        );
-        date = setDate(startOfMonth(current), targetDay);
+        const year = current.getFullYear();
+        const month = current.getMonth();
+        const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+        const targetDay = Math.min(pattern.day, daysInMonth);
+        dateStr = formatDateString(year, month, targetDay);
       } else if (
         pattern?.type === "weekdayOfMonth" &&
         pattern.weekday !== undefined &&
         pattern.occurrence !== undefined
       ) {
         // Nth weekday of month (e.g., 2nd Tuesday)
-        date = getNthWeekdayOfMonth(
+        dateStr = getNthWeekdayOfMonth(
           current.getFullYear(),
           current.getMonth(),
           pattern.weekday,
@@ -199,7 +207,8 @@ export function generateOccurrences(
         );
       }
 
-      if (date) {
+      if (dateStr) {
+        const date = parseISO(dateStr);
         // Skip dates before start
         if (!isBefore(date, start)) {
           // Check end conditions
@@ -213,7 +222,7 @@ export function generateOccurrences(
             return occurrences;
           }
 
-          occurrences.push(format(date, "yyyy-MM-dd"));
+          occurrences.push(dateStr);
           count++;
         }
       }
