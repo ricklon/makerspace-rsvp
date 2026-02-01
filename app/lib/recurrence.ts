@@ -1,16 +1,3 @@
-import {
-  addWeeks,
-  addMonths,
-  setDate,
-  getDay,
-  startOfMonth,
-  addDays,
-  isBefore,
-  isAfter,
-  parseISO,
-  format,
-} from "date-fns";
-
 // Recurrence pattern types
 export type Frequency = "weekly" | "biweekly" | "monthly";
 
@@ -62,6 +49,99 @@ export const occurrenceLabels: Record<number, string> = {
   "-1": "Last",
 };
 
+// ============================================================================
+// Pure date string utilities (no Date objects to avoid timezone issues)
+// ============================================================================
+
+/**
+ * Parse a YYYY-MM-DD string into components
+ */
+function parseDateString(dateStr: string): { year: number; month: number; day: number } {
+  const [year, month, day] = dateStr.split("-").map(Number);
+  return { year, month: month - 1, day }; // month is 0-indexed
+}
+
+/**
+ * Format year, month (0-indexed), day into YYYY-MM-DD string
+ */
+function formatDateString(year: number, month: number, day: number): string {
+  const m = String(month + 1).padStart(2, "0");
+  const d = String(day).padStart(2, "0");
+  return `${year}-${m}-${d}`;
+}
+
+/**
+ * Get the number of days in a month
+ */
+function getDaysInMonth(year: number, month: number): number {
+  // month is 0-indexed; getting day 0 of next month gives last day of current month
+  return new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+}
+
+/**
+ * Get the day of week (0=Sunday, 6=Saturday) for a date
+ */
+function getDayOfWeek(year: number, month: number, day: number): number {
+  return new Date(Date.UTC(year, month, day)).getUTCDay();
+}
+
+/**
+ * Compare two date strings. Returns -1 if a < b, 0 if equal, 1 if a > b
+ */
+function compareDateStrings(a: string, b: string): number {
+  if (a < b) return -1;
+  if (a > b) return 1;
+  return 0;
+}
+
+/**
+ * Add days to a date string
+ */
+function addDaysToDateString(dateStr: string, days: number): string {
+  const { year, month, day } = parseDateString(dateStr);
+  const date = new Date(Date.UTC(year, month, day + days));
+  return formatDateString(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+}
+
+/**
+ * Add weeks to a date string
+ */
+function addWeeksToDateString(dateStr: string, weeks: number): string {
+  return addDaysToDateString(dateStr, weeks * 7);
+}
+
+/**
+ * Add months to a date string (keeps same day, or last day of month if needed)
+ */
+function addMonthsToDateString(dateStr: string, months: number): string {
+  const { year, month, day } = parseDateString(dateStr);
+  const newMonth = month + months;
+  const newYear = year + Math.floor(newMonth / 12);
+  const normalizedMonth = ((newMonth % 12) + 12) % 12;
+  const daysInNewMonth = getDaysInMonth(newYear, normalizedMonth);
+  const newDay = Math.min(day, daysInNewMonth);
+  return formatDateString(newYear, normalizedMonth, newDay);
+}
+
+/**
+ * Get today's date as YYYY-MM-DD string
+ */
+function getTodayString(): string {
+  const now = new Date();
+  return formatDateString(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+}
+
+/**
+ * Get a date N months from now as YYYY-MM-DD string
+ */
+function getDateMonthsFromNow(months: number): string {
+  return addMonthsToDateString(getTodayString(), months);
+}
+
+// ============================================================================
+// Recurrence calculation functions
+// ============================================================================
+
 /**
  * Get the Nth occurrence of a weekday in a month
  * @param year - The year
@@ -76,51 +156,35 @@ export function getNthWeekdayOfMonth(
   weekday: number,
   occurrence: number
 ): string | null {
-  // Use UTC dates to avoid timezone issues
-  const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+  const daysInMonth = getDaysInMonth(year, month);
 
   if (occurrence === -1) {
     // Find the last occurrence
-    let day = daysInMonth;
-    while (day > 0) {
-      const date = new Date(Date.UTC(year, month, day));
-      if (date.getUTCDay() === weekday) {
+    for (let day = daysInMonth; day >= 1; day--) {
+      if (getDayOfWeek(year, month, day) === weekday) {
         return formatDateString(year, month, day);
       }
-      day--;
     }
     return null;
   }
 
   // Find the Nth occurrence
   let count = 0;
-  let day = 1;
-
-  while (day <= daysInMonth) {
-    const date = new Date(Date.UTC(year, month, day));
-    if (date.getUTCDay() === weekday) {
+  for (let day = 1; day <= daysInMonth; day++) {
+    if (getDayOfWeek(year, month, day) === weekday) {
       count++;
       if (count === occurrence) {
         return formatDateString(year, month, day);
       }
     }
-    day++;
   }
 
   return null; // The Nth occurrence doesn't exist in this month
 }
 
 /**
- * Format year, month, day into YYYY-MM-DD string
- */
-function formatDateString(year: number, month: number, day: number): string {
-  const m = String(month + 1).padStart(2, "0");
-  const d = String(day).padStart(2, "0");
-  return `${year}-${m}-${d}`;
-}
-
-/**
  * Generate occurrence dates for a recurring event
+ * All operations use pure string manipulation to avoid timezone issues
  */
 export function generateOccurrences(
   options: GenerateOccurrencesOptions
@@ -128,69 +192,85 @@ export function generateOccurrences(
   const { rule, startDate, endDate, maxOccurrences, generateUntil } = options;
   const occurrences: string[] = [];
 
-  const start = parseISO(startDate);
-  const end = endDate ? parseISO(endDate) : null;
-  const until = generateUntil
-    ? parseISO(generateUntil)
-    : addMonths(new Date(), 3); // Default: generate 3 months ahead
-
-  let current = start;
+  const untilDate = generateUntil || getDateMonthsFromNow(3);
   let count = 0;
 
-  // For weekly/biweekly with specific days, we need to handle differently
-  if (
-    (rule.frequency === "weekly" || rule.frequency === "biweekly") &&
-    rule.daysOfWeek &&
-    rule.daysOfWeek.length > 0
-  ) {
-    // Start from the beginning of the week containing startDate
-    const startDayOfWeek = getDay(start);
-    const weekStart = addDays(start, -startDayOfWeek);
-    let weekOffset = 0;
+  if (rule.frequency === "weekly" || rule.frequency === "biweekly") {
+    if (rule.daysOfWeek && rule.daysOfWeek.length > 0) {
+      // Weekly/biweekly with specific days
+      const { year, month, day } = parseDateString(startDate);
+      const startDayOfWeek = getDayOfWeek(year, month, day);
 
-    while (true) {
-      const currentWeekStart = addWeeks(
-        weekStart,
-        weekOffset * (rule.frequency === "biweekly" ? 2 : 1)
-      );
+      // Find the start of the week containing startDate
+      let weekStartDate = addDaysToDateString(startDate, -startDayOfWeek);
+      let weekOffset = 0;
 
-      for (const dayOfWeek of rule.daysOfWeek.sort((a, b) => a - b)) {
-        const date = addDays(currentWeekStart, dayOfWeek);
+      while (true) {
+        const currentWeekStart = addWeeksToDateString(
+          weekStartDate,
+          weekOffset * (rule.frequency === "biweekly" ? 2 : 1)
+        );
 
-        // Skip dates before start
-        if (isBefore(date, start)) continue;
+        for (const dayOfWeek of rule.daysOfWeek.sort((a, b) => a - b)) {
+          const dateStr = addDaysToDateString(currentWeekStart, dayOfWeek);
 
-        // Check end conditions
-        if (end && isAfter(date, end)) {
+          // Skip dates before start
+          if (compareDateStrings(dateStr, startDate) < 0) continue;
+
+          // Check end conditions
+          if (endDate && compareDateStrings(dateStr, endDate) > 0) {
+            return occurrences;
+          }
+          if (maxOccurrences && count >= maxOccurrences) {
+            return occurrences;
+          }
+          if (compareDateStrings(dateStr, untilDate) > 0) {
+            return occurrences;
+          }
+
+          occurrences.push(dateStr);
+          count++;
+        }
+
+        weekOffset++;
+        if (weekOffset > 520) break; // Safety limit: 10 years
+      }
+    } else {
+      // Simple weekly/biweekly - use same day of week as start
+      let currentDate = startDate;
+
+      while (true) {
+        if (endDate && compareDateStrings(currentDate, endDate) > 0) {
           return occurrences;
         }
         if (maxOccurrences && count >= maxOccurrences) {
           return occurrences;
         }
-        if (isAfter(date, until)) {
+        if (compareDateStrings(currentDate, untilDate) > 0) {
           return occurrences;
         }
 
-        occurrences.push(format(date, "yyyy-MM-dd"));
+        occurrences.push(currentDate);
         count++;
+
+        currentDate = addWeeksToDateString(
+          currentDate,
+          rule.frequency === "biweekly" ? 2 : 1
+        );
+
+        if (count > 520) break; // Safety limit
       }
-
-      weekOffset++;
-
-      // Safety limit
-      if (weekOffset > 520) break; // 10 years of weeks
     }
   } else if (rule.frequency === "monthly") {
     const pattern = rule.monthlyPattern;
+    let { year, month } = parseDateString(startDate);
 
     while (true) {
       let dateStr: string | null = null;
 
       if (pattern?.type === "dayOfMonth" && pattern.day) {
         // Simple day of month (e.g., 15th of every month)
-        const year = current.getFullYear();
-        const month = current.getMonth();
-        const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+        const daysInMonth = getDaysInMonth(year, month);
         const targetDay = Math.min(pattern.day, daysInMonth);
         dateStr = formatDateString(year, month, targetDay);
       } else if (
@@ -199,26 +279,20 @@ export function generateOccurrences(
         pattern.occurrence !== undefined
       ) {
         // Nth weekday of month (e.g., 2nd Tuesday)
-        dateStr = getNthWeekdayOfMonth(
-          current.getFullYear(),
-          current.getMonth(),
-          pattern.weekday,
-          pattern.occurrence
-        );
+        dateStr = getNthWeekdayOfMonth(year, month, pattern.weekday, pattern.occurrence);
       }
 
       if (dateStr) {
-        const date = parseISO(dateStr);
         // Skip dates before start
-        if (!isBefore(date, start)) {
+        if (compareDateStrings(dateStr, startDate) >= 0) {
           // Check end conditions
-          if (end && isAfter(date, end)) {
+          if (endDate && compareDateStrings(dateStr, endDate) > 0) {
             return occurrences;
           }
           if (maxOccurrences && count >= maxOccurrences) {
             return occurrences;
           }
-          if (isAfter(date, until)) {
+          if (compareDateStrings(dateStr, untilDate) > 0) {
             return occurrences;
           }
 
@@ -227,32 +301,16 @@ export function generateOccurrences(
         }
       }
 
-      current = addMonths(current, 1);
-
-      // Safety limit
-      if (current.getFullYear() - start.getFullYear() > 10) break;
-    }
-  } else {
-    // Simple weekly/biweekly without specific days - use start date's day of week
-    while (true) {
-      // Check end conditions
-      if (end && isAfter(current, end)) {
-        return occurrences;
-      }
-      if (maxOccurrences && count >= maxOccurrences) {
-        return occurrences;
-      }
-      if (isAfter(current, until)) {
-        return occurrences;
+      // Move to next month
+      month++;
+      if (month > 11) {
+        month = 0;
+        year++;
       }
 
-      occurrences.push(format(current, "yyyy-MM-dd"));
-      count++;
-
-      current = addWeeks(current, rule.frequency === "biweekly" ? 2 : 1);
-
-      // Safety limit
-      if (count > 520) break;
+      // Safety limit: 10 years
+      const { year: startYear } = parseDateString(startDate);
+      if (year - startYear > 10) break;
     }
   }
 
@@ -316,8 +374,8 @@ export function stringifyRecurrenceRule(rule: RecurrenceRule): string {
  * Create a default weekly recurrence rule based on a start date
  */
 export function createDefaultWeeklyRule(startDate: string): RecurrenceRule {
-  const date = parseISO(startDate);
-  const dayOfWeek = getDay(date);
+  const { year, month, day } = parseDateString(startDate);
+  const dayOfWeek = getDayOfWeek(year, month, day);
   return {
     frequency: "weekly",
     daysOfWeek: [dayOfWeek],
@@ -329,12 +387,11 @@ export function createDefaultWeeklyRule(startDate: string): RecurrenceRule {
  * Uses the Nth weekday pattern (e.g., "2nd Tuesday")
  */
 export function createDefaultMonthlyRule(startDate: string): RecurrenceRule {
-  const date = parseISO(startDate);
-  const dayOfWeek = getDay(date);
-  const dayOfMonth = date.getDate();
+  const { year, month, day } = parseDateString(startDate);
+  const dayOfWeek = getDayOfWeek(year, month, day);
 
   // Calculate which occurrence of the weekday this is
-  const occurrence = Math.ceil(dayOfMonth / 7);
+  const occurrence = Math.ceil(day / 7);
 
   return {
     frequency: "monthly",

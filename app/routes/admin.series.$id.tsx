@@ -13,7 +13,7 @@ import {
   describeRecurrenceRule,
   generateOccurrences,
 } from "~/lib/recurrence";
-import { formatTimeRange } from "~/utils/date";
+import { formatTimeRange, formatDateShort } from "~/utils/date";
 
 function slugify(text: string): string {
   return text
@@ -276,6 +276,102 @@ export async function action({ request, params, context }: ActionFunctionArgs) {
     });
   }
 
+  if (intent === "regenerate-instances") {
+    // Delete future instances without RSVPs and regenerate with correct dates
+    const today = new Date().toISOString().split("T")[0];
+    const futureInstances = await db
+      .select()
+      .from(events)
+      .where(
+        and(
+          eq(events.seriesId, seriesId),
+          gte(events.date, today)
+        )
+      )
+      .all();
+
+    let deleted = 0;
+    for (const instance of futureInstances) {
+      const hasRsvps = await db
+        .select()
+        .from(rsvps)
+        .where(eq(rsvps.eventId, instance.id))
+        .get();
+
+      if (!hasRsvps) {
+        await db.delete(events).where(eq(events.id, instance.id)).run();
+        deleted++;
+      }
+    }
+
+    // Now generate new instances
+    const recurrenceRule = parseRecurrenceRule(series.recurrenceRule);
+    const generateUntil = format(addMonths(new Date(), 3), "yyyy-MM-dd");
+
+    // Get remaining instance dates to avoid duplicates
+    const existingInstances = await db
+      .select({ date: events.seriesInstanceDate })
+      .from(events)
+      .where(eq(events.seriesId, seriesId))
+      .all();
+
+    const existingDates = new Set(existingInstances.map((i) => i.date));
+
+    const newOccurrences = generateOccurrences({
+      rule: recurrenceRule,
+      startDate: today, // Start from today
+      endDate: series.endDate,
+      maxOccurrences: series.maxOccurrences,
+      generateUntil,
+    }).filter((date) => !existingDates.has(date));
+
+    // Create new instances
+    const baseSlug = slugify(series.name);
+    let created = 0;
+
+    for (const occurrenceDate of newOccurrences) {
+      let slug = `${baseSlug}-${occurrenceDate}`;
+
+      const existing = await db
+        .select()
+        .from(events)
+        .where(eq(events.slug, slug))
+        .get();
+
+      if (existing) {
+        slug = `${slug}-${Date.now()}`;
+      }
+
+      await db
+        .insert(events)
+        .values({
+          name: series.name,
+          slug,
+          description: series.description,
+          date: occurrenceDate,
+          timeStart: series.timeStart,
+          timeEnd: series.timeEnd,
+          location: series.location,
+          capacity: series.capacity,
+          requiresWaiver: series.requiresWaiver,
+          waiverText: series.waiverText,
+          discordLink: series.discordLink,
+          status: "published",
+          seriesId,
+          seriesInstanceDate: occurrenceDate,
+          isSeriesException: false,
+        })
+        .run();
+
+      created++;
+    }
+
+    return json({
+      success: true,
+      message: `Regenerated instances: ${deleted} deleted, ${created} created`,
+    });
+  }
+
   if (intent === "delete-series") {
     // Delete all future instances without RSVPs
     const today = new Date().toISOString().split("T")[0];
@@ -362,6 +458,20 @@ export default function AdminSeriesDetail() {
         <div className="flex gap-2">
           {series.status === "active" && (
             <>
+              <Form method="post">
+                <input type="hidden" name="intent" value="regenerate-instances" />
+                <button
+                  type="submit"
+                  className="rounded-md border border-blue-300 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100"
+                  onClick={(e) => {
+                    if (!confirm("This will delete future instances without RSVPs and regenerate them. Continue?")) {
+                      e.preventDefault();
+                    }
+                  }}
+                >
+                  Regenerate
+                </button>
+              </Form>
               <Form method="post">
                 <input type="hidden" name="intent" value="generate-more" />
                 <button
@@ -622,12 +732,7 @@ export default function AdminSeriesDetail() {
                   <tr key={instance.id} className="hover:bg-gray-50">
                     <td className="whitespace-nowrap px-6 py-4">
                       <div className="font-medium text-gray-900">
-                        {new Date(instance.date).toLocaleDateString("en-US", {
-                          weekday: "short",
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
+                        {formatDateShort(instance.date)}
                       </div>
                       <div className="text-sm text-gray-500">
                         {formatTimeRange(instance.timeStart, instance.timeEnd)}
@@ -704,12 +809,7 @@ export default function AdminSeriesDetail() {
                 {pastInstances.slice(0, 10).map((instance) => (
                   <tr key={instance.id} className="hover:bg-gray-50">
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
-                      {new Date(instance.date).toLocaleDateString("en-US", {
-                        weekday: "short",
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
+                      {formatDateShort(instance.date)}
                     </td>
                     <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-500">
                       {instance.rsvpCount} RSVPs

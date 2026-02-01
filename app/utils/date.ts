@@ -2,15 +2,36 @@
 // Set TIMEZONE env var to your local timezone (e.g., "America/New_York")
 const DEFAULT_TIMEZONE = "America/New_York";
 
+/**
+ * Format a date string (YYYY-MM-DD) for display
+ * Uses UTC to avoid timezone shift issues
+ */
 export function formatDate(dateString: string, timezone?: string): string {
-  const tz = timezone || DEFAULT_TIMEZONE;
-  const date = new Date(dateString + "T12:00:00"); // Use noon to avoid date shift issues
+  // Parse the date string directly to avoid timezone issues
+  const [year, month, day] = dateString.split("-").map(Number);
+  // Create date at noon UTC to avoid any date boundary issues
+  const date = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
   return date.toLocaleDateString("en-US", {
     weekday: "long",
     year: "numeric",
     month: "long",
     day: "numeric",
-    timeZone: tz,
+    timeZone: "UTC", // Always use UTC since our date string is the canonical date
+  });
+}
+
+/**
+ * Format a date string with short format (e.g., "Sun, Feb 1, 2026")
+ */
+export function formatDateShort(dateString: string): string {
+  const [year, month, day] = dateString.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+  return date.toLocaleDateString("en-US", {
+    weekday: "short",
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
   });
 }
 
