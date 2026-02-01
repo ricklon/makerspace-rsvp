@@ -5,6 +5,7 @@ import { getDb } from "~/lib/db.server";
 import { eventSeries, events } from "~/lib/schema";
 import { eq, desc, and, gte } from "drizzle-orm";
 import { parseRecurrenceRule, describeRecurrenceRule } from "~/lib/recurrence";
+import { formatDate } from "~/utils/date";
 
 export async function loader({ context }: LoaderFunctionArgs) {
   const db = getDb(context?.cloudflare?.env.DB);
@@ -120,8 +121,8 @@ export default function AdminSeriesIndex() {
                   <td className="px-6 py-4 text-sm text-gray-500">
                     <div>{s.recurrenceDescription}</div>
                     <div className="text-xs text-gray-400">
-                      Starting {new Date(s.startDate).toLocaleDateString()}
-                      {s.endDate && ` until ${new Date(s.endDate).toLocaleDateString()}`}
+                      Starting {formatDate(s.startDate)}
+                      {s.endDate && ` until ${formatDate(s.endDate)}`}
                       {s.maxOccurrences && ` (${s.maxOccurrences} occurrences)`}
                     </div>
                   </td>
