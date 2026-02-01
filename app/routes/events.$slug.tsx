@@ -13,6 +13,7 @@ import { formatDate, formatTimeRangeWithTimezone, isEventInPast } from "~/utils/
 import { sendEmail, buildRsvpConfirmationEmail } from "~/lib/email.server";
 import { getAuth } from "@clerk/remix/ssr.server";
 import { SignInButton, useUser } from "@clerk/remix";
+import { UserMenu } from "~/components/UserMenu";
 
 type ActionData =
   | { success: true; message: string; isWaitlist: boolean }
@@ -276,12 +277,15 @@ export default function EventDetail() {
       {/* Header */}
       <header className="bg-white shadow-sm">
         <div className="mx-auto max-w-4xl px-4 py-6 sm:px-6 lg:px-8">
-          <Link
-            to="/"
-            className="text-sm text-primary hover:text-primary/80"
-          >
-            &larr; Back to Events
-          </Link>
+          <div className="flex items-center justify-between">
+            <Link
+              to="/"
+              className="text-sm text-primary hover:text-primary/80"
+            >
+              &larr; Back to Events
+            </Link>
+            <UserMenu />
+          </div>
         </div>
       </header>
 

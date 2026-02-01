@@ -3,8 +3,17 @@
  * Used for admin operations like setting user metadata
  */
 
+interface ClerkEmailAddress {
+  email_address: string;
+  id: string;
+}
+
 interface ClerkUser {
   id: string;
+  first_name: string | null;
+  last_name: string | null;
+  email_addresses: ClerkEmailAddress[];
+  primary_email_address_id: string | null;
   publicMetadata: Record<string, unknown>;
 }
 
@@ -71,4 +80,26 @@ export async function getClerkUser(
   } catch {
     return null;
   }
+}
+
+/**
+ * Get a user's primary email address from their Clerk user object
+ */
+export function getClerkUserPrimaryEmail(user: ClerkUser): string | null {
+  if (!user.email_addresses || user.email_addresses.length === 0) {
+    return null;
+  }
+
+  // Find primary email address if set
+  if (user.primary_email_address_id) {
+    const primaryEmail = user.email_addresses.find(
+      (e) => e.id === user.primary_email_address_id
+    );
+    if (primaryEmail) {
+      return primaryEmail.email_address;
+    }
+  }
+
+  // Fall back to first email address
+  return user.email_addresses[0].email_address;
 }

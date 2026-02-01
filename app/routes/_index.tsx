@@ -5,6 +5,7 @@ import { getDb } from "~/lib/db.server";
 import { events } from "~/lib/schema";
 import { sql } from "drizzle-orm";
 import { formatDate, formatTimeRangeWithTimezone } from "~/utils/date";
+import { UserMenu } from "~/components/UserMenu";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   const makerspaceName = data?.makerspaceName || "Makerspace";
@@ -41,19 +42,14 @@ export default function Index() {
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <h1 className="text-3xl font-bold text-gray-900">{makerspaceName} Events</h1>
-            <nav className="flex gap-4">
-              <Link
-                to="/my-rsvps"
-                className="text-sm font-medium text-gray-700 hover:text-gray-900"
-              >
-                My RSVPs
-              </Link>
+            <nav className="flex items-center gap-4">
               <Link
                 to="/admin"
-                className="text-sm font-medium text-primary hover:text-primary/80"
+                className="text-sm font-medium text-gray-600 hover:text-gray-900"
               >
                 Admin
               </Link>
+              <UserMenu />
             </nav>
           </div>
         </div>
