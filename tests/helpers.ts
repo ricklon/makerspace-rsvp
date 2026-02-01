@@ -9,6 +9,26 @@ export function createTestDb() {
 
   // Create tables
   sqlite.exec(`
+    CREATE TABLE event_series (
+      id TEXT PRIMARY KEY NOT NULL,
+      name TEXT NOT NULL,
+      description TEXT NOT NULL,
+      time_start TEXT NOT NULL,
+      time_end TEXT,
+      location TEXT NOT NULL,
+      capacity INTEGER,
+      requires_waiver INTEGER DEFAULT 0 NOT NULL,
+      waiver_text TEXT,
+      discord_link TEXT,
+      recurrence_rule TEXT NOT NULL,
+      start_date TEXT NOT NULL,
+      end_date TEXT,
+      max_occurrences INTEGER,
+      status TEXT DEFAULT 'active' NOT NULL,
+      created_at TEXT DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
+      updated_at TEXT DEFAULT (CURRENT_TIMESTAMP) NOT NULL
+    );
+
     CREATE TABLE events (
       id TEXT PRIMARY KEY NOT NULL,
       name TEXT NOT NULL,
@@ -23,6 +43,9 @@ export function createTestDb() {
       waiver_text TEXT,
       discord_link TEXT,
       status TEXT DEFAULT 'draft' NOT NULL,
+      series_id TEXT REFERENCES event_series(id),
+      series_instance_date TEXT,
+      is_series_exception INTEGER DEFAULT 0 NOT NULL,
       created_at TEXT DEFAULT (CURRENT_TIMESTAMP) NOT NULL,
       updated_at TEXT DEFAULT (CURRENT_TIMESTAMP) NOT NULL
     );
@@ -31,6 +54,7 @@ export function createTestDb() {
       id TEXT PRIMARY KEY NOT NULL,
       email TEXT NOT NULL UNIQUE,
       name TEXT NOT NULL,
+      clerk_user_id TEXT,
       created_at TEXT DEFAULT (CURRENT_TIMESTAMP) NOT NULL
     );
 

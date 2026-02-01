@@ -1,6 +1,43 @@
 import { sqliteTable, text, integer, index, unique } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
 
+// Event Series table - template for recurring events
+export const eventSeries = sqliteTable(
+  "event_series",
+  {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    name: text("name").notNull(),
+    description: text("description").notNull(),
+    timeStart: text("time_start").notNull(), // ISO time string (HH:MM)
+    timeEnd: text("time_end"), // ISO time string (HH:MM) - nullable
+    location: text("location").notNull(),
+    capacity: integer("capacity"), // null = unlimited
+    requiresWaiver: integer("requires_waiver", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    waiverText: text("waiver_text"),
+    discordLink: text("discord_link"),
+    // Recurrence settings
+    recurrenceRule: text("recurrence_rule").notNull(), // JSON string with pattern definition
+    startDate: text("start_date").notNull(), // First occurrence (YYYY-MM-DD)
+    endDate: text("end_date"), // End by date (YYYY-MM-DD) - nullable
+    maxOccurrences: integer("max_occurrences"), // End by count - nullable
+    status: text("status", { enum: ["active", "paused", "ended"] })
+      .notNull()
+      .default("active"),
+    createdAt: text("created_at")
+      .notNull()
+      .default(sql`(CURRENT_TIMESTAMP)`),
+    updatedAt: text("updated_at")
+      .notNull()
+      .default(sql`(CURRENT_TIMESTAMP)`),
+  },
+  (table) => ({
+    statusIdx: index("series_status_idx").on(table.status),
+    startDateIdx: index("series_start_date_idx").on(table.startDate),
+  })
+);
+
 // Events table
 export const events = sqliteTable(
   "events",
@@ -22,6 +59,12 @@ export const events = sqliteTable(
     status: text("status", { enum: ["draft", "published", "cancelled"] })
       .notNull()
       .default("draft"),
+    // Series relationship fields
+    seriesId: text("series_id").references(() => eventSeries.id, { onDelete: "set null" }),
+    seriesInstanceDate: text("series_instance_date"), // Original scheduled date from series
+    isSeriesException: integer("is_series_exception", { mode: "boolean" })
+      .notNull()
+      .default(false), // True if modified from template
     createdAt: text("created_at")
       .notNull()
       .default(sql`(CURRENT_TIMESTAMP)`),
@@ -33,6 +76,7 @@ export const events = sqliteTable(
     slugIdx: index("slug_idx").on(table.slug),
     dateIdx: index("date_idx").on(table.date),
     statusIdx: index("status_idx").on(table.status),
+    seriesIdIdx: index("series_id_idx").on(table.seriesId),
   })
 );
 
@@ -175,6 +219,8 @@ export const adminRequests = sqliteTable(
 );
 
 // Type exports
+export type EventSeries = typeof eventSeries.$inferSelect;
+export type NewEventSeries = typeof eventSeries.$inferInsert;
 export type Event = typeof events.$inferSelect;
 export type NewEvent = typeof events.$inferInsert;
 export type Attendee = typeof attendees.$inferSelect;

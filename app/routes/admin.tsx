@@ -250,6 +250,7 @@ export default function AdminLayout() {
   const navItems = [
     { path: "/admin", label: "Dashboard", exact: true },
     { path: "/admin/events", label: "Events" },
+    { path: "/admin/series", label: "Recurring Events" },
     { path: "/admin/requests", label: "Access Requests", badge: pendingCount > 0 ? pendingCount : undefined },
   ];
 

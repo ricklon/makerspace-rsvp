@@ -3,7 +3,7 @@ import { json, redirect } from "@remix-run/cloudflare";
 import { useLoaderData, useActionData, Form, Link } from "@remix-run/react";
 import { eq } from "drizzle-orm";
 import { getDb } from "~/lib/db.server";
-import { events, rsvps, attendees, waivers, attendance } from "~/lib/schema";
+import { events, rsvps, attendees, waivers, attendance, eventSeries } from "~/lib/schema";
 
 type ActionData = {
   success: true;
@@ -25,6 +25,16 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
 
   if (!event) {
     throw new Response("Event not found", { status: 404 });
+  }
+
+  // Get series info if this is a series instance
+  let series = null;
+  if (event.seriesId) {
+    series = await db
+      .select()
+      .from(eventSeries)
+      .where(eq(eventSeries.id, event.seriesId))
+      .get();
   }
 
   // Get RSVPs with attendee info
@@ -68,7 +78,7 @@ export async function loader({ params, context }: LoaderFunctionArgs) {
     waiverSigned: waiverList.length,
   };
 
-  return json({ event, rsvps: enrichedRsvps, stats });
+  return json({ event, rsvps: enrichedRsvps, stats, series });
 }
 
 export async function action({ params, request, context }: ActionFunctionArgs) {
@@ -105,6 +115,9 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
       return json<ActionData>({ success: false, errors }, { status: 400 });
     }
 
+    // Get the current event to check if it's a series instance
+    const currentEvent = await db.select().from(events).where(eq(events.id, id)).get();
+
     await db
       .update(events)
       .set({
@@ -120,11 +133,16 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
         discordLink: discordLink?.trim() || null,
         status,
         updatedAt: new Date().toISOString(),
+        // Mark as exception if this is a series instance being edited
+        isSeriesException: currentEvent?.seriesId ? true : currentEvent?.isSeriesException ?? false,
       })
       .where(eq(events.id, id))
       .run();
 
-    return json<ActionData>({ success: true, message: "Event updated successfully" });
+    const message = currentEvent?.seriesId && !currentEvent?.isSeriesException
+      ? "Event updated (marked as modified from series)"
+      : "Event updated successfully";
+    return json<ActionData>({ success: true, message });
   }
 
   if (intent === "delete") {
@@ -160,19 +178,51 @@ export async function action({ params, request, context }: ActionFunctionArgs) {
 }
 
 export default function AdminEventDetail() {
-  const { event, rsvps: rsvpList, stats } = useLoaderData<typeof loader>();
+  const { event, rsvps: rsvpList, stats, series } = useLoaderData<typeof loader>();
   const actionData = useActionData<ActionData>();
 
   return (
     <div>
-      <div className="mb-6">
+      <div className="mb-6 flex items-center gap-4">
         <Link
           to="/admin/events"
           className="text-sm text-primary hover:text-primary/80"
         >
           &larr; Back to Events
         </Link>
+        {series && (
+          <Link
+            to={`/admin/series/${series.id}`}
+            className="text-sm text-primary hover:text-primary/80"
+          >
+            View Series
+          </Link>
+        )}
       </div>
+
+      {/* Series info banner */}
+      {series && (
+        <div className="mb-6 rounded-lg bg-purple-50 border border-purple-200 p-4">
+          <div className="flex items-center gap-2">
+            <span className="inline-flex rounded-full bg-purple-100 px-2 py-0.5 text-xs font-semibold text-purple-800">
+              Recurring
+            </span>
+            <span className="text-sm text-purple-800">
+              Part of <Link to={`/admin/series/${series.id}`} className="font-medium underline">{series.name}</Link> series
+            </span>
+            {event.isSeriesException && (
+              <span className="inline-flex rounded-full bg-yellow-100 px-2 py-0.5 text-xs font-semibold text-yellow-800">
+                Modified
+              </span>
+            )}
+          </div>
+          {!event.isSeriesException && (
+            <p className="mt-1 text-xs text-purple-600">
+              Editing this event will mark it as modified and exclude it from future series updates.
+            </p>
+          )}
+        </div>
+      )}
 
       {actionData?.success && (
         <div className="mb-6 rounded-lg bg-green-50 p-4">

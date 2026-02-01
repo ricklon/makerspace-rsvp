@@ -2,7 +2,7 @@ import type { LoaderFunctionArgs } from "@remix-run/cloudflare";
 import { json } from "@remix-run/cloudflare";
 import { useLoaderData, Link } from "@remix-run/react";
 import { getDb } from "~/lib/db.server";
-import { events, rsvps } from "~/lib/schema";
+import { events, rsvps, eventSeries } from "~/lib/schema";
 import { eq, desc } from "drizzle-orm";
 
 export async function loader({ context }: LoaderFunctionArgs) {
@@ -13,6 +13,10 @@ export async function loader({ context }: LoaderFunctionArgs) {
     .from(events)
     .orderBy(desc(events.date))
     .all();
+
+  // Get all series for lookup
+  const allSeries = await db.select().from(eventSeries).all();
+  const seriesMap = new Map(allSeries.map((s) => [s.id, s]));
 
   // Get RSVP counts for each event
   const eventsWithCounts = await Promise.all(
@@ -30,6 +34,7 @@ export async function loader({ context }: LoaderFunctionArgs) {
         ...event,
         rsvpCount: yesCount,
         waitlistCount,
+        seriesName: event.seriesId ? seriesMap.get(event.seriesId)?.name : null,
       };
     })
   );
@@ -92,8 +97,20 @@ export default function AdminEvents() {
                 <tr key={event.id} className="hover:bg-gray-50">
                   <td className="whitespace-nowrap px-6 py-4">
                     <div>
-                      <div className="font-medium text-gray-900">
-                        {event.name}
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-gray-900">
+                          {event.name}
+                        </span>
+                        {event.seriesId && (
+                          <span className="inline-flex rounded-full bg-purple-100 px-2 text-xs font-semibold leading-5 text-purple-800">
+                            recurring
+                          </span>
+                        )}
+                        {event.isSeriesException && (
+                          <span className="inline-flex rounded-full bg-yellow-100 px-2 text-xs font-semibold leading-5 text-yellow-800">
+                            modified
+                          </span>
+                        )}
                       </div>
                       <div className="text-sm text-gray-500">
                         {event.location}
